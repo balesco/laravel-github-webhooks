@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "adb4b680144df947b976ddb89b6572b1",
+    "content-hash": "bc17f21053aae2d3fba3eb10b14f17f7",
     "packages": [
         {
             "name": "brick/math",
@@ -1267,6 +1267,64 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2025-08-08T13:58:03+00:00"
+        },
+        {
+            "name": "laravel/github-webhooks",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "./Packages/github-webhooks",
+                "reference": "0d7652b4d3b6c0311aa722f0573036a05b74660a"
+            },
+            "require": {
+                "illuminate/database": "^11.0|^12.0",
+                "illuminate/http": "^11.0|^12.0",
+                "illuminate/queue": "^11.0|^12.0",
+                "illuminate/routing": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^9.0",
+                "phpunit/phpunit": "^10.0|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\GitHubWebhooks\\GitHubWebhooksServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\GitHubWebhooks\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Laravel\\GitHubWebhooks\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Laravel Team",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Laravel package for handling GitHub webhooks",
+            "keywords": [
+                "github",
+                "laravel",
+                "package",
+                "webhooks"
+            ],
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "laravel/prompts",
@@ -9098,7 +9156,7 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
