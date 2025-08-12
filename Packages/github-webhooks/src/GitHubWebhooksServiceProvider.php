@@ -43,6 +43,8 @@ class GitHubWebhooksServiceProvider extends ServiceProvider
                 Commands\ReprocessWebhookCommand::class,
                 Commands\UpdateRepositoryCommand::class,
                 Commands\ListRepositoriesCommand::class,
+                Commands\GenerateWebhookSecretCommand::class,
+                Commands\ValidateWebhookConfigCommand::class,
             ]);
         }
 

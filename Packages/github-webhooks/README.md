@@ -173,7 +173,35 @@ class HandleGitHubWebhook
 
 ## Commandes Artisan
 
-### Lister les webhooks
+Le package fournit plusieurs commandes Artisan pour gérer les webhooks GitHub :
+
+### Gestion des secrets
+
+```bash
+# Générer un nouveau secret webhook sécurisé
+php artisan github-webhooks:generate-secret
+
+# Afficher le secret sans l'écrire dans .env
+php artisan github-webhooks:generate-secret --show
+
+# Forcer l'écrasement d'un secret existant
+php artisan github-webhooks:generate-secret --force
+
+# Générer un secret de longueur personnalisée
+php artisan github-webhooks:generate-secret --length=64
+```
+
+### Validation de la configuration
+
+```bash
+# Valider la configuration complète
+php artisan github-webhooks:validate
+
+# Tester avec une URL spécifique
+php artisan github-webhooks:validate --url=https://votre-domaine.com/webhooks/github
+```
+
+### Gestion des webhooks
 
 ```bash
 # Lister tous les webhooks
@@ -185,14 +213,30 @@ php artisan github-webhooks:list --event=push
 # Voir seulement les webhooks non traités
 php artisan github-webhooks:list --unprocessed
 
+# Voir seulement les webhooks traités
+php artisan github-webhooks:list --processed
+
 # Limiter le nombre de résultats
 php artisan github-webhooks:list --limit=5
+
+# Reprocesser un webhook spécifique
+php artisan github-webhooks:reprocess 123
 ```
 
-### Reprocesser un webhook
+### Gestion des repositories
 
 ```bash
-php artisan github-webhooks:reprocess 123
+# Lister tous les repositories locaux
+php artisan github-webhooks:list-repos
+
+# Mettre à jour un repository depuis GitHub
+php artisan github-webhooks:update-repo owner/repo --branch=main --clone-url=https://github.com/owner/repo.git
+
+# Forcer la mise à jour (ignore les changements locaux)
+php artisan github-webhooks:update-repo owner/repo --force
+
+# Utiliser un chemin personnalisé
+php artisan github-webhooks:list-repos --path=/custom/path
 ```
 
 ## Modèle de données
