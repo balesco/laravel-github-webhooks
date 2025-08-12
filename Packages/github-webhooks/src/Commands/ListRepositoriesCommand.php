@@ -21,44 +21,29 @@ class ListRepositoriesCommand extends Command
             return self::SUCCESS;
         }
 
-        $repositories = [];
-        $directories = File::directories($basePath);
-
-        foreach ($directories as $dir) {
-            $repositoryName = basename($dir);
-            $gitDir = $dir . '/.git';
-
-            if (is_dir($gitDir)) {
-                $repoInfo = $this->getRepositoryInfo($dir);
-                $repositories[] = [
-                    'name' => str_replace('_', '/', $repositoryName),
-                    'path' => $dir,
-                    'branch' => $repoInfo['branch'],
-                    'last_commit' => $repoInfo['last_commit'],
-                    'status' => $repoInfo['status'],
-                ];
-            }
-        }
-
-        if (empty($repositories)) {
+        if (!is_dir($basePath . '/.git')) {
             $this->info("No Git repositories found in: {$basePath}");
             return self::SUCCESS;
         }
 
-        $this->info("Found " . count($repositories) . " repository(ies):");
-        $this->newLine();
+        $gitDir = $basePath . '/.git';
+        $repositoryName = basename($basePath);
+        $repoInfo = $this->getRepositoryInfo($gitDir);
+        
+        if (!$repoInfo) {
+            $this->error("No valid Git repository found at: {$gitDir}");
+            return self::FAILURE;
+        }
 
         $headers = ['Repository', 'Current Branch', 'Last Commit', 'Status'];
         $rows = [];
 
-        foreach ($repositories as $repo) {
-            $rows[] = [
-                $repo['name'],
-                $repo['branch'],
-                $repo['last_commit'],
-                $repo['status'],
-            ];
-        }
+        $rows[] = [
+            $repositoryName,
+            $repoInfo['branch'],
+            $repoInfo['last_commit'],
+            $repoInfo['status'],
+        ];
 
         $this->table($headers, $rows);
 
@@ -92,9 +77,9 @@ class ListRepositoriesCommand extends Command
         exec("cd {$path} && git status --porcelain 2>/dev/null", $statusOutput, $statusCode);
         if ($statusCode === 0) {
             if (empty($statusOutput)) {
-                $info['status'] = '✅ Clean';
+                $info['status'] = 'Clean';
             } else {
-                $info['status'] = '⚠️ Modified (' . count($statusOutput) . ' files)';
+                $info['status'] = 'Modified (' . count($statusOutput) . ' files)';
             }
         }
 
