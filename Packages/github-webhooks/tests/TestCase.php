@@ -11,13 +11,6 @@ abstract class TestCase extends TestingTestCase
 {
     use RefreshDatabase;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->migrate(__DIR__ . '/../database/migrations');
-    }
-
     protected function getPackageProviders($app): array
     {
         return [

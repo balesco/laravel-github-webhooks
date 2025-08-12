@@ -14,7 +14,7 @@ class ListRepositoriesCommand extends Command
 
     public function handle(): int
     {
-        $basePath = $this->option('path') ?: config('github-webhooks.repository_storage_path');
+        $basePath = $this->option('path') ?: config('github-webhooks.repository_path');
 
         if (!is_dir($basePath)) {
             $this->info("No repositories directory found at: {$basePath}");

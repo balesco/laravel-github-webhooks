@@ -2,12 +2,20 @@
 
 namespace Laravel\GitHubWebhooks\Handlers;
 
+use App\Services\DeploymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\GitHubWebhooks\Contracts\WebhookHandler;
 
 class PushHandler implements WebhookHandler
 {
+    protected DeploymentService $deploymentService;
+
+    public function __construct(DeploymentService $deploymentService)
+    {
+        $this->deploymentService = $deploymentService;
+    }
+
     /**
      * Handle a push event from GitHub.
      */
@@ -36,27 +44,10 @@ class PushHandler implements WebhookHandler
         // - Send notifications
         // - Update local repository
         // Update local repository
-        $repositoryPath = base_path("../{$repository}");
 
-        if (!is_dir($repositoryPath)) {
-            // Clone repository if it doesn't exist
-            $cloneUrl = $payload['repository']['clone_url'] ?? null;
-            if ($cloneUrl) {
-                exec("git clone {$cloneUrl} {$repositoryPath} 2>&1", $output, $returnCode);
-                if ($returnCode !== 0) {
-                    Log::error("Failed to clone repository", ['repository' => $repository, 'output' => $output]);
-                }
-            }
-        } else {
-            // Pull latest changes
-            exec("cd {$repositoryPath} && git fetch origin && git reset --hard origin/{$branch} 2>&1", $output, $returnCode);
-            if ($returnCode !== 0) {
-                Log::error("Failed to update repository", ['repository' => $repository, 'branch' => $branch, 'output' => $output]);
-            } else {
-                Log::info("Repository updated successfully", ['repository' => $repository, 'branch' => $branch]);
-            }
+        if ($branch === config('github-webhooks.branch', 'main')) {
+            $this->deploymentService->deploy($payload);
         }
-
 
         return [
             'processed' => true,

@@ -78,6 +78,17 @@ return [
     |
     */
     'auto_update_branches' => ['main', 'master', 'develop'],
-    
-    'repository_storage_path' => base_path(),
+    'branch' => env('GITHUB_WEBHOOK_BRANCH', 'main'),
+
+    'repository_path' => env('GITHUB_WEBHOOK_REPOSITORY_PATH', base_path()),
+
+    'deployment' => [
+        'run_composer' => env('GITHUB_WEBHOOK_RUN_COMPOSER', true),
+        'run_migrations' => env('GITHUB_WEBHOOK_RUN_MIGRATIONS', true),
+        'run_npm' => env('GITHUB_WEBHOOK_RUN_NPM', false),
+        'cache_clear' => env('GITHUB_WEBHOOK_RUN_CACHE_CLEAR', true),
+        'optimize' => env('GITHUB_WEBHOOK_OPTIMIZE', true),
+        'create_storage_link' => env('GITHUB_WEBHOOK_CREATE_STORAGE_LINK', true),
+        'restart_queue' => env('GITHUB_WEBHOOK_RESTART_QUEUE', false),
+    ],
 ];

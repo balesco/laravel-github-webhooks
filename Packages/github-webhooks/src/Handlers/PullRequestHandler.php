@@ -2,12 +2,19 @@
 
 namespace Laravel\GitHubWebhooks\Handlers;
 
+use App\Services\DeploymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\GitHubWebhooks\Contracts\WebhookHandler;
 
 class PullRequestHandler implements WebhookHandler
 {
+    protected DeploymentService $deploymentService;
+
+    public function __construct(DeploymentService $deploymentService)
+    {
+        $this->deploymentService = $deploymentService;
+    }
     /**
      * Handle a pull request event from GitHub.
      */
@@ -17,6 +24,7 @@ class PullRequestHandler implements WebhookHandler
             return null;
         }
 
+        $branch = str_replace('refs/heads/', '', $payload['ref'] ?? '');
         $action = $payload['action'] ?? 'unknown';
         $repository = $payload['repository']['full_name'] ?? 'unknown';
         $prNumber = $payload['pull_request']['number'] ?? 'unknown';
@@ -39,8 +47,11 @@ class PullRequestHandler implements WebhookHandler
             case 'closed':
                 // Handle closed PR
                 if ($payload['pull_request']['merged'] ?? false) {
-                    // PR was merged
+                    // PR was merged                    
                     Log::info("Pull request #{$prNumber} was merged");
+                    if ($branch === config('github-webhooks.branch', 'main')) {
+                        $this->deploymentService->deploy($payload);
+                    }
                 }
                 break;
             case 'synchronize':
