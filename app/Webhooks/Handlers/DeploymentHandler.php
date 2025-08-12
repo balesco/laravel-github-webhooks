@@ -5,9 +5,20 @@ namespace App\Webhooks\Handlers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\GitHubWebhooks\Contracts\WebhookHandler;
+use Laravel\GitHubWebhooks\Exceptions\DeploymentFailedException;
+use Laravel\GitHubWebhooks\Service\DeploymentService;
 
 class DeploymentHandler implements WebhookHandler
 {
+    /**
+     * The deployment service instance.
+     */
+    protected DeploymentService $deploymentService;
+
+    public function __construct(DeploymentService $deploymentService)
+    {
+        $this->deploymentService = $deploymentService;
+    }
     /**
      * Handle deployment-related GitHub events.
      */
@@ -15,10 +26,6 @@ class DeploymentHandler implements WebhookHandler
     {
         if ($event === 'push') {
             return $this->handlePush($payload);
-        }
-
-        if ($event === 'release') {
-            return $this->handleRelease($payload);
         }
 
         return null;
@@ -31,97 +38,48 @@ class DeploymentHandler implements WebhookHandler
     {
         $repository = $payload['repository']['full_name'] ?? 'unknown';
         $branch = str_replace('refs/heads/', '', $payload['ref'] ?? '');
-        $commits = $payload['commits'] ?? [];
+        $commits = count($payload['commits'] ?? []);
+        $pusher = $payload['pusher']['name'] ?? 'unknown';
 
-        Log::info("Deployment handler: Push received", [
-            'repository' => $repository,
-            'branch' => $branch,
-            'commits_count' => count($commits),
-        ]);
-
-        // Déclencher un déploiement pour la branche main/master
-        if (in_array($branch, ['main', 'master'])) {
-            $this->triggerDeployment($repository, $branch);
-            
-            return [
-                'action' => 'deployment_triggered',
+        if (config('app.debug', false) === true) {
+            Log::info("Push event received in local environment", [
                 'repository' => $repository,
                 'branch' => $branch,
-            ];
+                'commits' => $commits,
+                'pusher' => $pusher,
+            ]);
+        }
+        $response = [];
+
+        if ($branch === config('github-webhooks.branch', 'main')) {
+            try {
+                $response = $this->deploymentService->deploy($payload);
+                if (config('app.debug', false) === true)
+                    Log::info("Deployment triggered for branch {$branch}", [
+                        'repository' => $repository,
+                        'commits' => $commits,
+                    ]);
+            } catch (DeploymentFailedException $e) {
+                Log::error("Deployment failed", [
+                    'repository' => $repository,
+                    'branch' => $branch,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $response = [
+                    'deployed' => false,
+                    'reason' => 'Deployment service error',
+                    'error' => $e->getMessage(),
+                    'branch' => $branch,
+                ];
+            }
         }
 
-        return [
-            'action' => 'no_deployment',
+        // Démarrer le processus de déploiement
+        return $response ?: [
+            'deployed' => false,
             'reason' => 'Branch not configured for deployment',
             'branch' => $branch,
         ];
-    }
-
-    /**
-     * Handle release events.
-     */
-    private function handleRelease(array $payload): array
-    {
-        $action = $payload['action'] ?? 'unknown';
-        $repository = $payload['repository']['full_name'] ?? 'unknown';
-        $release = $payload['release'] ?? [];
-
-        if ($action === 'published') {
-            Log::info("New release published", [
-                'repository' => $repository,
-                'tag' => $release['tag_name'] ?? 'unknown',
-                'name' => $release['name'] ?? 'unknown',
-            ]);
-
-            // Déclencher un déploiement de production
-            $this->triggerProductionDeployment($repository, $release);
-
-            return [
-                'action' => 'production_deployment_triggered',
-                'repository' => $repository,
-                'release' => $release['tag_name'] ?? 'unknown',
-            ];
-        }
-
-        return [
-            'action' => 'release_handled',
-            'release_action' => $action,
-        ];
-    }
-
-    /**
-     * Trigger a development deployment.
-     */
-    private function triggerDeployment(string $repository, string $branch): void
-    {
-        Log::info("Triggering deployment", [
-            'repository' => $repository,
-            'branch' => $branch,
-            'environment' => 'staging',
-        ]);
-
-        // Ici vous pourriez :
-        // - Déclencher un job de queue pour le déploiement
-        // - Appeler une API de CI/CD (GitHub Actions, GitLab CI, etc.)
-        // - Exécuter des commandes de déploiement
-        // - Envoyer des notifications Slack/Discord
-        
-        // Exemple avec un job en queue :
-        // dispatch(new DeployJob($repository, $branch, 'staging'));
-    }
-
-    /**
-     * Trigger a production deployment.
-     */
-    private function triggerProductionDeployment(string $repository, array $release): void
-    {
-        Log::info("Triggering production deployment", [
-            'repository' => $repository,
-            'release' => $release['tag_name'] ?? 'unknown',
-            'environment' => 'production',
-        ]);
-
-        // Logique de déploiement production
-        // dispatch(new DeployJob($repository, $release['tag_name'], 'production'));
     }
 }

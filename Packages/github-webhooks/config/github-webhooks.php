@@ -90,5 +90,5 @@ return [
         'optimize' => env('GITHUB_WEBHOOK_OPTIMIZE', true),
         'create_storage_link' => env('GITHUB_WEBHOOK_CREATE_STORAGE_LINK', true),
         'restart_queue' => env('GITHUB_WEBHOOK_RESTART_QUEUE', false),
-    ],
+    ]
 ];

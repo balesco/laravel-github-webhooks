@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace Laravel\GitHubWebhooks\Service;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
+use Laravel\GitHubWebhooks\Exceptions\DeploymentFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
@@ -70,15 +71,8 @@ class DeploymentService
                 'duration' => $duration,
                 'steps' => $results
             ];
-        } catch (\Exception $e) {
+        } catch (DeploymentFailedException $e) {
             $duration = round(microtime(true) - $startTime, 2);
-
-            Log::error('Deployment failed', [
-                'error' => $e->getMessage(),
-                'duration' => $duration . 's',
-                'completed_steps' => $results
-            ]);
-
             throw $e;
         }
     }

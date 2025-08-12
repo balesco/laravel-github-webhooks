@@ -5,9 +5,21 @@ namespace App\Webhooks\Handlers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\GitHubWebhooks\Contracts\WebhookHandler;
+use Laravel\GitHubWebhooks\Service\DeploymentService;
 
 class NotificationHandler implements WebhookHandler
 {
+
+    /**
+     * The deployment service instance.
+     */
+    protected DeploymentService $deploymentService;
+
+    public function __construct(DeploymentService $deploymentService)
+    {
+        $this->deploymentService = $deploymentService;
+    }
+    
     /**
      * Handle GitHub events for notifications.
      */
@@ -18,13 +30,13 @@ class NotificationHandler implements WebhookHandler
         switch ($event) {
             case 'pull_request':
                 return $this->handlePullRequest($payload);
-            
+
             case 'issues':
                 return $this->handleIssue($payload);
-            
+
             case 'push':
                 return $this->handlePush($payload);
-            
+
             default:
                 Log::info("Event reçu : {$event}", ['repository' => $repository]);
                 return ['event' => $event, 'notified' => false];
@@ -42,8 +54,8 @@ class NotificationHandler implements WebhookHandler
 
         $message = match ($action) {
             'opened' => "🔄 Nouvelle Pull Request ouverte dans {$repository}",
-            'closed' => $pr['merged'] 
-                ? "✅ Pull Request mergée dans {$repository}" 
+            'closed' => $pr['merged']
+                ? "✅ Pull Request mergée dans {$repository}"
                 : "❌ Pull Request fermée dans {$repository}",
             'review_requested' => "👀 Review demandée sur une Pull Request dans {$repository}",
             'ready_for_review' => "📝 Pull Request prête pour review dans {$repository}",

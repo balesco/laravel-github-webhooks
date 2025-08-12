@@ -2,6 +2,7 @@
     "name": "laravel/github-webhooks",
     "description": "Laravel package for handling GitHub webhooks",
     "type": "library",
+    "version": "1.0.0",
     "license": "MIT",
     "keywords": [
         "laravel",

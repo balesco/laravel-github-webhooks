@@ -3,9 +3,12 @@
 namespace Laravel\GitHubWebhooks\Contracts;
 
 use Illuminate\Http\Request;
+use Laravel\GitHubWebhooks\Service\DeploymentService;
 
 interface WebhookHandler
 {
+    public function __construct(DeploymentService $deploymentService);
+    
     /**
      * Handle a GitHub webhook event.
      */

@@ -1,10 +1,10 @@
 # Laravel GitHub Webhooks Package
 
-Un package Laravel complet pour gérer les webhooks GitHub avec stockage en base de données, validation de signature et gestion d'événements.
+A comprehensive Laravel package for handling GitHub webhooks with database storage, signature validation, and event management.
 
 ## Installation
 
-1. Ajoutez le package à votre `composer.json` local :
+1. Add the package to your local `composer.json`:
 
 ```json
 {
@@ -20,20 +20,20 @@ Un package Laravel complet pour gérer les webhooks GitHub avec stockage en base
 }
 ```
 
-2. Installez le package :
+2. Install the package:
 
 ```bash
 composer require laravel/github-webhooks
 ```
 
-3. Publiez la configuration et les migrations :
+3. Publish configuration and migrations:
 
 ```bash
 php artisan vendor:publish --tag=github-webhooks-config
 php artisan vendor:publish --tag=github-webhooks-migrations
 ```
 
-4. Exécutez les migrations :
+4. Run migrations:
 
 ```bash
 php artisan migrate
@@ -41,37 +41,37 @@ php artisan migrate
 
 ## Configuration
 
-### Variables d'environnement
+### Environment Variables
 
-Ajoutez ces variables à votre fichier `.env` :
+Add these variables to your `.env` file:
 
 ```env
-# Secret pour valider les webhooks GitHub (optionnel mais recommandé)
+# Secret for validating GitHub webhooks (optional but recommended)
 GITHUB_WEBHOOK_SECRET=your-webhook-secret
 
-# Préfixe de route (par défaut: webhooks)
+# Route prefix (default: webhooks)
 GITHUB_WEBHOOK_ROUTE_PREFIX=webhooks
 
-# Stocker les webhooks en base de données (par défaut: true)
+# Store webhooks in database (default: true)
 GITHUB_WEBHOOK_STORE=true
 ```
 
-### Configuration GitHub
+### GitHub Configuration
 
-1. Allez dans les paramètres de votre repository GitHub
-2. Cliquez sur "Webhooks" dans le menu de gauche
-3. Cliquez sur "Add webhook"
-4. Configurez :
-   - **Payload URL**: `https://votre-domaine.com/webhooks/github`
+1. Go to your GitHub repository settings
+2. Click "Webhooks" in the left menu
+3. Click "Add webhook"
+4. Configure:
+   - **Payload URL**: `https://your-domain.com/webhooks/github`
    - **Content type**: `application/json`
-   - **Secret**: Votre secret (même que `GITHUB_WEBHOOK_SECRET`)
-   - **Events**: Sélectionnez les événements que vous voulez recevoir
+   - **Secret**: Your secret (same as `GITHUB_WEBHOOK_SECRET`)
+   - **Events**: Select the events you want to receive
 
-## Utilisation
+## Usage
 
-### Handlers personnalisés
+### Custom Handlers
 
-Créez des handlers pour traiter les événements GitHub :
+Create handlers to process GitHub events:
 
 ```php
 <?php
@@ -89,7 +89,7 @@ class DeploymentHandler implements WebhookHandler
             $branch = str_replace('refs/heads/', '', $payload['ref'] ?? '');
             
             if ($branch === 'main') {
-                // Déclencher un déploiement
+                // Trigger deployment
                 $this->triggerDeployment($payload);
             }
         }
@@ -99,14 +99,14 @@ class DeploymentHandler implements WebhookHandler
 
     private function triggerDeployment(array $payload): void
     {
-        // Votre logique de déploiement
+        // Your deployment logic
     }
 }
 ```
 
-### Enregistrement des handlers
+### Registering Handlers
 
-Dans `config/github-webhooks.php` :
+In `config/github-webhooks.php`:
 
 ```php
 'handlers' => [
@@ -116,34 +116,34 @@ Dans `config/github-webhooks.php` :
     'pull_request' => [
         App\Webhooks\Handlers\PullRequestHandler::class,
     ],
-    // Handler pour tous les événements
+    // Handler for all events
     '*' => [
         App\Webhooks\Handlers\LogAllEventsHandler::class,
     ],
 ],
 ```
 
-### Utilisation programmatique
+### Programmatic Usage
 
 ```php
 use Laravel\GitHubWebhooks\GitHubWebhooks;
 
-// Enregistrer un handler à la volée
+// Register a handler on the fly
 GitHubWebhooks::on('push', function ($event, $payload, $request) {
-    // Traiter l'événement push
+    // Process push event
     return ['status' => 'processed'];
 });
 
-// Enregistrer un handler pour plusieurs événements
+// Register handler for multiple events
 GitHubWebhooks::on(['push', 'pull_request'], new MyCustomHandler());
 ```
 
-### Écouter les événements
+### Event Listeners
 
 ```php
 use Laravel\GitHubWebhooks\Events\GitHubWebhookReceived;
 
-// Dans votre EventServiceProvider
+// In your EventServiceProvider
 protected $listen = [
     GitHubWebhookReceived::class => [
         App\Listeners\HandleGitHubWebhook::class,
@@ -166,174 +166,174 @@ class HandleGitHubWebhook
         $payload = $event->payload;
         $deliveryId = $event->deliveryId;
 
-        // Votre logique personnalisée
+        // Your custom logic
     }
 }
 ```
 
-## Commandes Artisan
+## Artisan Commands
 
-Le package fournit plusieurs commandes Artisan pour gérer les webhooks GitHub :
+The package provides several Artisan commands for managing GitHub webhooks:
 
-### Gestion des secrets
+### Secret Management
 
 ```bash
-# Générer un nouveau secret webhook sécurisé
+# Generate a new secure webhook secret
 php artisan github-webhooks:generate-secret
 
-# Afficher le secret sans l'écrire dans .env
+# Show the secret without writing to .env
 php artisan github-webhooks:generate-secret --show
 
-# Forcer l'écrasement d'un secret existant
+# Force overwrite existing secret
 php artisan github-webhooks:generate-secret --force
 
-# Générer un secret de longueur personnalisée
+# Generate secret with custom length
 php artisan github-webhooks:generate-secret --length=64
 ```
 
-### Validation de la configuration
+### Configuration Validation
 
 ```bash
-# Valider la configuration complète
+# Validate complete configuration
 php artisan github-webhooks:validate
 
-# Tester avec une URL spécifique
-php artisan github-webhooks:validate --url=https://votre-domaine.com/webhooks/github
+# Test with specific URL
+php artisan github-webhooks:validate --url=https://your-domain.com/webhooks/github
 ```
 
-### Gestion des webhooks
+### Webhook Management
 
 ```bash
-# Lister tous les webhooks
+# List all webhooks
 php artisan github-webhooks:list
 
-# Filtrer par type d'événement
+# Filter by event type
 php artisan github-webhooks:list --event=push
 
-# Voir seulement les webhooks non traités
+# Show only unprocessed webhooks
 php artisan github-webhooks:list --unprocessed
 
-# Voir seulement les webhooks traités
+# Show only processed webhooks
 php artisan github-webhooks:list --processed
 
-# Limiter le nombre de résultats
+# Limit number of results
 php artisan github-webhooks:list --limit=5
 
-# Reprocesser un webhook spécifique
+# Reprocess specific webhook
 php artisan github-webhooks:reprocess 123
 ```
 
-### Gestion des repositories
+### Repository Management
 
 ```bash
-# Lister tous les repositories locaux
+# List all local repositories
 php artisan github-webhooks:list-repos
 
-# Mettre à jour un repository depuis GitHub
+# Update repository from GitHub
 php artisan github-webhooks:update-repo owner/repo --branch=main --clone-url=https://github.com/owner/repo.git
 
-# Forcer la mise à jour (ignore les changements locaux)
+# Force update (ignore local changes)
 php artisan github-webhooks:update-repo owner/repo --force
 
-# Utiliser un chemin personnalisé
+# Use custom path
 php artisan github-webhooks:list-repos --path=/custom/path
 ```
 
-## Modèle de données
+## Data Model
 
-Le package stocke les webhooks dans la table `git_hub_webhooks` avec les champs :
+The package stores webhooks in the `git_hub_webhooks` table with these fields:
 
-- `id` : ID auto-incrémenté
-- `event_type` : Type d'événement GitHub (push, pull_request, etc.)
-- `delivery_id` : ID de livraison GitHub
-- `payload` : Données JSON du webhook
-- `headers` : En-têtes HTTP
-- `processed_at` : Timestamp de traitement
-- `created_at` / `updated_at` : Timestamps Laravel
+- `id`: Auto-incremented ID
+- `event_type`: GitHub event type (push, pull_request, etc.)
+- `delivery_id`: GitHub delivery ID
+- `payload`: JSON webhook data
+- `headers`: HTTP headers
+- `processed_at`: Processing timestamp
+- `created_at` / `updated_at`: Laravel timestamps
 
-### Utilisation du modèle
+### Model Usage
 
 ```php
 use Laravel\GitHubWebhooks\Models\GitHubWebhook;
 
-// Récupérer tous les webhooks push non traités
+// Get all unprocessed push webhooks
 $webhooks = GitHubWebhook::eventType('push')
     ->unprocessed()
     ->get();
 
-// Marquer comme traité
+// Mark as processed
 $webhook->update(['processed_at' => now()]);
 ```
 
-## Sécurité
+## Security
 
-### Validation de signature
+### Signature Validation
 
-Le package valide automatiquement les signatures GitHub si vous configurez un secret. Cette validation :
+The package automatically validates GitHub signatures if you configure a secret. This validation:
 
-- Utilise HMAC-SHA256
-- Compare de manière sécurisée avec `hash_equals()`
-- Retourne une erreur 401 si la signature est invalide
+- Uses HMAC-SHA256
+- Compares securely with `hash_equals()`
+- Returns 401 error if signature is invalid
 
-### Middleware recommandé
+### Recommended Middleware
 
-Ajoutez des middlewares dans la configuration :
+Add middleware in configuration:
 
 ```php
 'middleware' => [
-    'throttle:60,1', // Limite de débit
-    'api',           // Middleware API
+    'throttle:60,1', // Rate limiting
+    'api',           // API middleware
 ],
 ```
 
-## Événements GitHub supportés
+## Supported GitHub Events
 
-Le package peut traiter tous les événements GitHub, incluant :
+The package can handle all GitHub events, including:
 
-- `push` : Commits poussés
-- `pull_request` : Pull requests (ouverte, fermée, synchronisée, etc.)
-- `issues` : Issues (ouverte, fermée, étiquetée, etc.)
-- `release` : Releases
-- `deployment` : Déploiements
-- `workflow_run` : Exécutions GitHub Actions
-- Et bien d'autres...
+- `push`: Commits pushed
+- `pull_request`: Pull requests (opened, closed, synchronized, etc.)
+- `issues`: Issues (opened, closed, labeled, etc.)
+- `release`: Releases
+- `deployment`: Deployments
+- `workflow_run`: GitHub Actions runs
+- And many more...
 
-## Dépannage
+## Troubleshooting
 
-### Vérification des logs
+### Check Logs
 
-Les webhooks sont loggés automatiquement. Vérifiez vos logs Laravel :
+Webhooks are automatically logged. Check your Laravel logs:
 
 ```bash
 tail -f storage/logs/laravel.log
 ```
 
-### Test des webhooks
+### Test Webhooks
 
-Utilisez ngrok pour tester localement :
+Use ngrok for local testing:
 
 ```bash
 ngrok http 8000
 ```
 
-Puis configurez l'URL webhook GitHub avec l'URL ngrok.
+Then configure the GitHub webhook URL with the ngrok URL.
 
-### Webhook non reçu
+### Webhook Not Received
 
-1. Vérifiez que l'URL est accessible depuis GitHub
-2. Vérifiez la configuration du secret
-3. Consultez l'onglet "Recent Deliveries" dans GitHub
-4. Vérifiez les logs d'erreur
+1. Check that the URL is accessible from GitHub
+2. Verify secret configuration
+3. Check the "Recent Deliveries" tab in GitHub
+4. Review error logs
 
-## Contribution
+## Contributing
 
-Ce package est conçu pour être extensible. Vous pouvez :
+This package is designed to be extensible. You can:
 
-- Créer des handlers personnalisés
-- Étendre le modèle GitHubWebhook
-- Ajouter des middlewares personnalisés
-- Contribuer avec de nouvelles fonctionnalités
+- Create custom handlers
+- Extend the GitHubWebhook model
+- Add custom middleware
+- Contribute new features
 
-## Licence
+## License
 
 MIT
